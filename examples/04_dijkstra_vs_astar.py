@@ -10,7 +10,6 @@ from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
-from pathfinding3d.finder.theta_star import ThetaStarFinder
 
 width, height, depth = 10, 10, 10
 
