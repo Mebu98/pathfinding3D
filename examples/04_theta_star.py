@@ -1,5 +1,5 @@
 """
-This example shows how Theta* algorithm differs from A* algorithm
+This example shows how Dijkstra algorithm differs from A* algorithm
 Requires plotly for visualization. Install it using `pip install plotly`
 """
 
@@ -9,30 +9,37 @@ import plotly.graph_objects as go
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
+from pathfinding3d.finder.dijkstra import DijkstraFinder
 from pathfinding3d.finder.theta_star import ThetaStarFinder
 
-# Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
-matrix = np.ones((10, 10, 10), dtype=np.int8)
-# mark the center of the grid as an obstacle
-matrix[5, 5, 5] = 0
+width, height, depth = 10, 10, 10
 
+# Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
+matrix = np.ones((width, height, depth), dtype=np.int8)
+# obstacles are marked with 0
+
+obstacles = [[x, y, 5] for x in range(10) for y in range(9)]
+
+print(obstacles)
+for obs in obstacles:
+    matrix[obs[0], obs[1], obs[2]] = 0
 # Create a grid object from the numpy array
 grid = Grid(matrix=matrix)
 
 # Mark the start and end points
 start = grid.node(0, 0, 0)
-end = grid.node(9, 9, 9)
+end = grid.node(9, 0, 9)
 
-# Create an instance of the Theta* finder with diagonal movement allowed
-finder = ThetaStarFinder(diagonal_movement=DiagonalMovement.always)
-path, runs = finder.find_path(start, end, grid)
+# Create an instance of the Dijkstra finder with diagonal movement allowed
+finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
+dijkstra_path, runs = finder.find_path(start, end, grid)
 
 # Path will be a list with all the waypoints as nodes
 # Convert it to a list of coordinate tuples
-path = [p.identifier for p in path]
+dijkstra_path = [p.identifier for p in dijkstra_path]
 
-print("operations:", runs, "path length:", len(path))
-print("path:", path)
+print("operations:", runs, "path length:", len(dijkstra_path))
+print("path:", dijkstra_path)
 
 # clean up the grid
 grid.cleanup()
@@ -55,56 +62,79 @@ def calculate_path_cost(path):
     return cost
 
 
-theta_star_cost = calculate_path_cost(path)
+theta_star_cost = calculate_path_cost(dijkstra_path)
 astar_cost = calculate_path_cost(astar_path)
 
 print("ThetaStarFinder path cost:", theta_star_cost, "\nAStarFinder path cost:", astar_cost)
 
-# Create a plotly figure to visualize the path
+point_offset = .5
+
 fig = go.Figure(
     data=[
         go.Scatter3d(
-            x=[pt[0] + 0.5 for pt in path],
-            y=[pt[1] + 0.5 for pt in path],
-            z=[pt[2] + 0.5 for pt in path],
+            x=[pt[0] + point_offset for pt in dijkstra_path],
+            y=[pt[1] + point_offset for pt in dijkstra_path],
+            z=[pt[2] + point_offset for pt in dijkstra_path],
             mode="lines + markers",
             line=dict(color="blue", width=4),
             marker=dict(size=4, color="blue"),
-            name="Theta* path",
-            hovertext=["Theta* path point"] * len(path),
+            name="Dijkstra path",
+            hovertext=["Dijkstra path point"] * len(dijkstra_path),
         ),
         go.Scatter3d(
-            x=[pt[0] + 0.5 for pt in astar_path],
-            y=[pt[1] + 0.5 for pt in astar_path],
-            z=[pt[2] + 0.5 for pt in astar_path],
+            y=[pt[1] + point_offset for pt in astar_path],
+            x=[pt[0] + point_offset for pt in astar_path],
+            z=[pt[2] + point_offset for pt in astar_path],
             mode="lines + markers",
             line=dict(color="red", width=4),
             marker=dict(size=4, color="red"),
             name="A* path",
             hovertext=["A* path point"] * len(astar_path),
         ),
-        go.Scatter3d(
-            x=[5.5],
-            y=[5.5],
-            z=[5.5],
-            mode="markers",
-            marker=dict(color="black", size=7.5),
-            name="Obstacle",
-            hovertext=["Obstacle point"],
+        # go.Scatter3d(
+        #     x=[5.5],
+        #     y=[5.5],
+        #     z=[5.5],
+        #     mode="markers",
+        #     marker=dict(color="black", size=7.5),
+        #     name="Obstacle",
+        #     hovertext=["Obstacle point"],
+        # ),
+        go.Volume(
+            x=[pt[0] + point_offset for pt in obstacles],
+            y=[pt[1] + point_offset for pt in obstacles],
+            z=[pt[2] + point_offset for pt in obstacles],
+            value=np.array([1 for obs in obstacles]),
+            isomin=0.1,
+            isomax=1.0,
+            opacity=0.1,
+            surface_count=100,  # Increase for better visibility
+            colorscale="Greys",
+            showscale=False,
+            name="Obstacles",
         ),
+        # go.Scatter3d(
+        #     x=[pt[0] + point_offset for pt in obstacles],
+        #     y=[pt[1] + point_offset for pt in obstacles],
+        #     z=[pt[2] + point_offset for pt in obstacles],
+        #     mode="lines + markers",
+        #     marker=dict(color="black", size=7.5),
+        #     name="Obstacle",
+        #     hovertext=["Obstacle point"],
+        # ),
         go.Scatter3d(
-            x=[0.5],
-            y=[0.5],
-            z=[0.5],
+            x=[start.x + point_offset],
+            y=[start.y + point_offset],
+            z=[start.z + point_offset],
             mode="markers",
             marker=dict(color="green", size=7.5),
             name="Start",
             hovertext=["Start point"],
         ),
         go.Scatter3d(
-            x=[9.5],
-            y=[9.5],
-            z=[9.5],
+            x=[end.x + point_offset],
+            y=[end.y + point_offset],
+            z=[end.z + point_offset],
             mode="markers",
             marker=dict(color="orange", size=7.5),
             name="End",
@@ -113,13 +143,9 @@ fig = go.Figure(
     ]
 )
 
-# Define the camera position
-camera = {
-    "up": {"x": 0, "y": 0, "z": 1},
-    "center": {"x": 0.1479269806756467, "y": 0.06501594452841505, "z": -0.0907033779622012},
-    "eye": {"x": 1.3097359159706334, "y": 0.4710974884501846, "z": 2.095154166796815},
-    "projection": {"type": "perspective"},
-}
+
+# Create a plotly figure to visualize the path
+
 
 # Update the layout of the figure
 fig.update_layout(
@@ -159,11 +185,20 @@ fig.update_layout(
         x=0.01,
         bgcolor="rgba(255, 255, 255, 0.7)",
     ),
-    title=dict(text="Theta* vs A*"),
-    scene_camera=camera,
+    title=dict(text="Dijkstra vs A*"),
 )
 
 # Save the figure as a html file
 # fig.write_html("theta_star.html", full_html=False, include_plotlyjs="cdn")
 # Show the figure in a new tab
 fig.show()
+
+# grid.visualize(
+#   path=astar_path,  # optionally visualize the path
+#   start=start,
+#   end=end,
+#   visualize_weight=True,  # weights above 1 (default) will be visualized
+#   save_html=True,  # save visualization to html file
+#   save_to="path_visualization.html",  # specify the path to save the html file
+#   always_show=True,  # always show the visualization in the browser
+# )

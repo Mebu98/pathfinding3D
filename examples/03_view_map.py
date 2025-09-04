@@ -11,6 +11,7 @@ import numpy as np
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
+from pathfinding3d.finder.dijkstra import DijkstraFinder
 
 # attempt to import Open3D for visualization
 USE_OPEN3D = True
@@ -38,7 +39,7 @@ start = grid.node(*start_pt)
 end = grid.node(*end_pt)
 
 # initialize A* finder with specified diagonal movement setting
-finder = AStarFinder(diagonal_movement=DiagonalMovement.only_when_no_obstacle)
+finder = DijkstraFinder(diagonal_movement=DiagonalMovement.only_when_no_obstacle)
 
 # use the finder to get the path
 path, runs = finder.find_path(start, end, grid)
@@ -54,6 +55,8 @@ print(f"path: {path}")
 
 # visualize path in open3d
 if USE_OPEN3D:
+
+
     # Identifying obstacles and representing them in blue
     obstacle_indices = np.where(matrix == 0)
     xyz_pt = np.stack(obstacle_indices, axis=-1).astype(float)
@@ -80,3 +83,10 @@ if USE_OPEN3D:
 
     # Visualize the voxel grid
     o3d.visualization.draw_geometries([axes, voxel_grid], window_name="Voxel Env", width=1024, height=768)
+
+    # Place camera based on screen capture
+    vis = o3d.visualization.Visualizer()
+    ctr = vis.get_view_control()
+    parameters = o3d.io.read_pinhole_camera_parameters("ScreenCamera_2025-09-03-16-11-19.json")
+    ctr.convert_from_pinhole_camera_parameters(parameters)
+

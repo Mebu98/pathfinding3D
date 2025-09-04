@@ -41,7 +41,7 @@ setup(
     ],
     packages=[package for package in find_packages() if package.startswith("pathfinding3d")],
     package_data={"pathfinding3d": ["version.txt"]},
-    install_requires=["numpy"],
+    install_requires=["numpy", 'open3d'],
     extras_require={
         "vis": ["plotly"],
         "dev": ["black"] + test_requirements + doc_requirements,
