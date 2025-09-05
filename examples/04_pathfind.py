@@ -44,29 +44,21 @@ grid = Grid(matrix=matrix.matrix)
 start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
 end = grid.node(matrix.end.x, matrix.end.y, matrix.end.z)
 
+point_offset = .0
 
-# Create an instance of the Dijkstra finder with diagonal movement allowed
-finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
-dijkstra_path, dijkstra_operations = finder.find_path(start, end, grid)
+def pathfinder(algorithm):
+    finder = None
+    match algorithm:
+        case "Dijkstra": finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
+        case "A*": finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
 
-# Path will be a list with all the waypoints as nodes
-# Convert it to a list of coordinate tuples
-dijkstra_path = [p.identifier for p in dijkstra_path]
+    path , operations = finder.find_path(start, end, grid)
+    path = [p.identifier for p in path]
 
-print("Dijkstra operations:", dijkstra_operations, "Dijkstra path length:", len(dijkstra_path))
-print("Dijkstra path:", dijkstra_path)
+    print(algorithm, " operations:", operations, algorithm, " path length: ", len(path))
+    print(algorithm, " path:", path)
 
-# # clean up the grid
-grid.cleanup()
-
-# Create an instance of the A* finder with diagonal movement allowed
-finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
-astar_path, astar_operations = finder.find_path(start, end, grid)
-
-astar_path = [p.identifier for p in astar_path]
-
-print("AStarFinder operations:", astar_operations, "AStarFinder path length:", len(astar_path))
-print("AStarFinder path:", astar_path)
+    return path, operations
 
 
 def calculate_path_cost(path):
@@ -76,24 +68,41 @@ def calculate_path_cost(path):
         cost += (dx**2 + dy**2 + dz**2) ** 0.5
     return cost
 
+def addtosubtitle(algorithm, operations, cost, path):
+    return f"""
+    {algorithm}:<br>
+        Operations: {operations}<br>
+        Cost: {cost:.2f}<br>
+        Length: {len(path)}
+    <br>"""
 
-dijkstra_cost = calculate_path_cost(dijkstra_path)
-astar_cost = calculate_path_cost(astar_path)
+def createdatapoints(algorithm, path):
+    color = "yellow"
+    match algorithm:
+        case "Dijkstra": color = "blue"
+        case "A*": color = "red"
 
-print("Dijkstra path cost:", dijkstra_cost, "\nAStar path cost:", astar_cost)
+    return go.Scatter3d(
+            x=[pt[0] + point_offset for pt in path],
+            y=[pt[1] + point_offset for pt in path],
+            z=[pt[2] + point_offset for pt in path],
+            mode="lines + markers",
+            line=dict(color=color, width=4),
+            marker=dict(size=4, color=color),
+            name= algorithm + " path",
+            hovertext=[algorithm + " path point"] * len(path),
+        )
 
-subtitle = (f"""
-    Dijkstra:<br>
-        Operations: {dijkstra_operations}<br>
-        Cost: {dijkstra_cost:.2f}<br>
-        Length: {len(dijkstra_path)}
-    <br>
-    A*:<br>
-        Operations: {astar_operations}<br>
-        Cost: {astar_cost:.2f} <br>
-        Length: {len(astar_path)}
-""")
-point_offset = .0
+list = ["Dijkstra", "A*"]
+subtitle = f""""""
+datapoints = []
+
+for item in list:
+    path, operations = pathfinder(item)
+    cost = calculate_path_cost(path)
+    subtitle + addtosubtitle(item, operations, cost, path)
+    datapoints.append(createdatapoints(item, path))
+    grid.cleanup()
 
 
 # Extract obstacle and weight information directly from the grid
@@ -125,26 +134,8 @@ for x in range(max_x):
 
 fig = go.Figure(
     data=[
-        go.Scatter3d(
-            x=[pt[0] + point_offset for pt in dijkstra_path],
-            y=[pt[1] + point_offset for pt in dijkstra_path],
-            z=[pt[2] + point_offset for pt in dijkstra_path],
-            mode="lines + markers",
-            line=dict(color="blue", width=4),
-            marker=dict(size=4, color="blue"),
-            name="Dijkstra path",
-            hovertext=["Dijkstra path point"] * len(dijkstra_path),
-        ),
-        go.Scatter3d(
-            x=[pt[0] + point_offset for pt in astar_path],
-            y=[pt[1] + point_offset for pt in astar_path],
-            z=[pt[2] + point_offset for pt in astar_path],
-            mode="lines + markers",
-            line=dict(color="red", width=4),
-            marker=dict(size=4, color="red"),
-            name="A* path",
-            hovertext=["A* path point"] * len(astar_path),
-        ),
+        datapoints[0],
+        datapoints[1],
         obstacle_vol,
         # go.Volume(
             # x=[pt.x + point_offset for pt in obstacles],
