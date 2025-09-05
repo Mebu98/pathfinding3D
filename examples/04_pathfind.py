@@ -10,7 +10,9 @@ from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
+from pathfinding3d.finder.breadth_first import BreadthFirstFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
+from pathfinding3d.finder.bi_a_star import BiAStarFinder
 
 pio.renderers.default = "browser"
 matrix = getMap3()
@@ -45,6 +47,8 @@ grid = Grid(matrix=matrix.matrix)
 start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
 end = grid.node(matrix.end.x, matrix.end.y, matrix.end.z)
 
+list = ["Dijkstra", "A*", "BFS", "Bi A*"]
+colours = ["red", "magenta", "blue", "yellow", "magenta", "cyan", "pink", "orange"]
 point_offset = .0
 
 def pathfinder(algorithm):
@@ -52,6 +56,8 @@ def pathfinder(algorithm):
     match algorithm:
         case "Dijkstra": finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
         case "A*": finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
+        case "Bi A*": finder = BiAStarFinder(diagonal_movement=DiagonalMovement.always)
+        case "BFS": finder = BreadthFirstFinder(diagonal_movement=DiagonalMovement.always)
 
     path , operations = finder.find_path(start, end, grid)
     path = [p.identifier for p in path]
@@ -78,10 +84,7 @@ def addtosubtitle(algorithm, operations, cost, path):
     <br>"""
 
 def createdatapoints(algorithm, path):
-    color = "yellow"
-    match algorithm:
-        case "Dijkstra": color = "blue"
-        case "A*": color = "red"
+    color = colours.pop(0)
 
     return go.Scatter3d(
             x=[pt[0] + point_offset for pt in path],
@@ -94,7 +97,6 @@ def createdatapoints(algorithm, path):
             hovertext=[algorithm + " path point"] * len(path),
         )
 
-list = ["Dijkstra", "A*"]
 subtitle = f""""""
 datapoints = []
 
