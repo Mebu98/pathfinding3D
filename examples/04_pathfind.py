@@ -16,7 +16,7 @@ from pathfinding3d.finder.dijkstra import DijkstraFinder
 from pathfinding3d.finder.bi_a_star import BiAStarFinder
 from pathfinding3d.finder.theta_star import ThetaStarFinder
 
-pio.renderers.default = "browser"
+#pio.renderers.default = "browser"
 matrix = getMap3()
 max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
 
@@ -157,10 +157,41 @@ layout = go.Layout(
     ))
 )
 
+def createCube(x,y,z):
+    return go.Mesh3d(
+        hovertext="cube",
+        x=[0, 0, x, x, 0, 0, x, x],
+        y=[0, y, y, 0, 0, y, y, 0],
+        z=[0, 0, 0, 0, z, z, z, z],
+
+        i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+        j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+        k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+    ),
+
+obstacles = []
+
+for x in range(max_x):
+    for y in range(max_y):
+        for z in range(max_z):
+            node = grid.node(x, y, z)
+            if not node.walkable:
+                obstacles.append(Node(x, y, z))
+
 fig = go.Figure(
     layout=layout,
     data=[
-        obstacle_vol,
+        # obstacle_vol,
+        # go.Mesh3d(
+        #     hovertext="obstacle",
+        #     x=[[pt.x-1, pt.x-1, pt.x, pt.x, pt.x-1, pt.x-1, pt.x, pt.x] for pt in obstacles],
+        #     y=[[pt.y-1, pt.y, pt.y, pt.y-1, pt.y-1, pt.y, pt.y, pt.y-1] for pt in obstacles],
+        #     z=[[pt.z-1, pt.z-1, pt.z-1, pt.z-1, pt.z, pt.z, pt.z, pt.z] for pt in obstacles],
+        #
+        #     i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+        #     j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+        #     k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+        # ),
         # go.Scatter3d(
         #     x=[pt.x + point_offset for pt in obstacles],
         #     y=[pt.y + point_offset for pt in obstacles],
@@ -194,6 +225,35 @@ fig = go.Figure(
 
 for datapoint in datapoints:
     fig.add_trace(datapoint)
+
+obs_offset = .5
+obs_scale = [1, 1, 1]
+
+# 3d boxes for obstacles instead of volume... idk how to make it good :(
+for pt in obstacles:
+    mesh_x = [0, 0, 1, 1, 0, 0, 1, 1]
+    mesh_y = [0, 1, 1, 0, 0, 1, 1, 0]
+    mesh_z = [0, 0, 0, 0, 1, 1, 1, 1]
+
+    for i in range(len(mesh_x)):
+        mesh_x[i] = (mesh_x[i] * obs_scale[0]) + pt.x - obs_offset
+        mesh_y[i] = (mesh_y[i] * obs_scale[1]) + pt.y - obs_offset
+        mesh_z[i] = (mesh_z[i] * obs_scale[2]) + pt.z - obs_offset
+
+    fig.add_trace(
+        go.Mesh3d(
+                hovertext="obstacle",
+                color = "blue",
+                opacity=.05,
+                alphahull=1,
+                x = mesh_x,
+                y = mesh_y,
+                z = mesh_z,
+                # x=[pt.x- 1 + obs_offset, pt.x - 1 + obs_offset, pt.x + obs_offset, pt.x + obs_offset, pt.x-1 + obs_offset, pt.x-1 + obs_offset, pt.x + obs_offset, pt.x + obs_offset],
+                # y=[pt.y- 1 + obs_offset, pt.y + obs_offset, pt.y + obs_offset, pt.y-1 + obs_offset, pt.y-1 + obs_offset, pt.y + obs_offset, pt.y + obs_offset, pt.y-1 + obs_offset],
+                # z=[pt.z -1 + obs_offset, pt.z - 1 + obs_offset, pt.z - 1 + obs_offset, pt.z - 1 + obs_offset, pt.z + obs_offset, pt.z + obs_offset, pt.z + obs_offset, pt.z + obs_offset],
+        )
+    )
 
 # Create a plotly figure to visualize the path
 
