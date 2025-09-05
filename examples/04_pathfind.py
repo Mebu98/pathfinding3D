@@ -3,9 +3,8 @@ This example shows how Dijkstra algorithm differs from A* algorithm
 Requires plotly for visualization. Install it using `pip install plotly`
 """
 
-import numpy as np
 import plotly.graph_objects as go
-from plotly.graph_objs import Scatter3d
+import plotly.io as pio
 
 from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
@@ -13,6 +12,7 @@ from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
 
+pio.renderers.default = "browser"
 matrix = getMap3()
 max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
 
