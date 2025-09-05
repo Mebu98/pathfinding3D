@@ -5,6 +5,7 @@ Requires plotly for visualization. Install it using `pip install plotly`
 
 import numpy as np
 import plotly.graph_objects as go
+from plotly.graph_objs import Scatter3d
 
 from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
@@ -12,7 +13,7 @@ from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
 
-matrix = getMap2()
+matrix = getMap3()
 max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
 
 print(matrix.matrix)
@@ -100,7 +101,7 @@ datapoints = []
 for item in list:
     path, operations = pathfinder(item)
     cost = calculate_path_cost(path)
-    subtitle + addtosubtitle(item, operations, cost, path)
+    subtitle += addtosubtitle(item, operations, cost, path)
     datapoints.append(createdatapoints(item, path))
     grid.cleanup()
 
@@ -132,37 +133,19 @@ for x in range(max_x):
             name="Obstacles",
         )
 
+
+layout = go.Layout(
+    scene = go.layout.Scene(
+    aspectmode='manual',
+    aspectratio=go.layout.scene.Aspectratio(
+        x=1, y=max_y/max_x, z=max_z/max_x,
+    ))
+)
+
 fig = go.Figure(
+    layout=layout,
     data=[
-        datapoints[0],
-        datapoints[1],
         obstacle_vol,
-        # go.Volume(
-            # x=[pt.x + point_offset for pt in obstacles],
-            # y=[pt.y + point_offset for pt in obstacles],
-            # z=[pt.z + point_offset for pt in obstacles],
-            # value=np.array([1 for obs in obstacles]),
-            # isomin=0.1,
-            # isomax=1.0,
-            # opacity=0.1,
-            # surface_count=20,  # Increase for better visibility
-            # colorscale="Greys",
-            # showscale=False,
-            # name="Obstacles",
-        # ),
-        # go.Mesh3d(
-        #     x=[pt.x + point_offset for pt in obstacles],
-        #     y=[pt.y + point_offset for pt in obstacles],
-        #     z=[pt.z + point_offset for pt in obstacles],
-        #
-        #     i = [7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
-        #     j = [3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
-        #     k = [0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
-        #
-        #     opacity=0.1,
-        #     colorscale="Greys",
-        #     name="Obstacles",
-        # ),
         # go.Scatter3d(
         #     x=[pt.x + point_offset for pt in obstacles],
         #     y=[pt.y + point_offset for pt in obstacles],
@@ -194,6 +177,8 @@ fig = go.Figure(
     ]
 )
 
+for datapoint in datapoints:
+    fig.add_trace(datapoint)
 
 # Create a plotly figure to visualize the path
 
