@@ -11,23 +11,34 @@ from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
 
-width, height, depth = 10, 10, 10
+max_x, max_y, max_z = 10, 10, 6
+
+class Node:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
-matrix = np.ones((width, height, depth), dtype=np.int8)
+matrix = np.ones((max_x, max_y, max_z), dtype=np.int8)
 # obstacles are marked with 0
 
-obstacles = [[x, y, 5] for x in range(10) for y in range(9)]
+obstacles = [Node(x,y,2) for x in range(10) for y in range(9)]
+obstacles.extend(Node(x, y, 4) for x in range(10) for y in range(1, 10))
 
-print(obstacles)
 for obs in obstacles:
-    matrix[obs[0], obs[1], obs[2]] = 0
+    matrix[obs.x, obs.y, obs.z] = 0
+
+
+for obs in obstacles:
+    matrix[obs.x, obs.y, obs.z] = 0
 # Create a grid object from the numpy array
+print(matrix)
 grid = Grid(matrix=matrix)
 
 # Mark the start and end points
 start = grid.node(0, 0, 0)
-end = grid.node(9, 0, 9)
+end = grid.node(max_x-1, 0, max_z-1)
 
 # Create an instance of the Dijkstra finder with diagonal movement allowed
 finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
@@ -40,7 +51,7 @@ dijkstra_path = [p.identifier for p in dijkstra_path]
 print("Dijkstra operations:", dijkstra_operations, "Dijkstra path length:", len(dijkstra_path))
 print("Dijkstra path:", dijkstra_path)
 
-# clean up the grid
+# # clean up the grid
 grid.cleanup()
 
 # Create an instance of the A* finder with diagonal movement allowed
@@ -72,12 +83,40 @@ subtitle = (f"""
         Cost: {dijkstra_cost:.2f}<br>
         Length: {len(dijkstra_path)}
     <br>
-    A:<br>
+    A*:<br>
         Operations: {astar_operations}<br>
         Cost: {astar_cost:.2f} <br>
         Length: {len(astar_path)}
 """)
-point_offset = .5
+point_offset = .0
+
+
+# Extract obstacle and weight information directly from the grid
+X, Y, Z, obstacle_values, weight_values = [], [], [], [], []
+for x in range(max_x):
+    for y in range(max_y):
+        for z in range(max_z):
+            node = grid.node(x, y, z)
+            X.append(x)
+            Y.append(y)
+            Z.append(z)
+            obstacle_values.append(0 if node.walkable else 1)
+            weight_values.append(node.weight if node.walkable else 0)
+
+        # Create obstacle volume visualization
+        obstacle_vol = go.Volume(
+            x=np.array(X),
+            y=np.array(Y),
+            z=np.array(Z),
+            value=np.array(obstacle_values),
+            isomin=0.7,
+            isomax=1.0,
+            opacity=0.1,
+            surface_count=5,  # Increase for better visibility
+            colorscale="Greys",
+            showscale=False,
+            name="Obstacles",
+        )
 
 fig = go.Figure(
     data=[
@@ -92,8 +131,8 @@ fig = go.Figure(
             hovertext=["Dijkstra path point"] * len(dijkstra_path),
         ),
         go.Scatter3d(
-            y=[pt[1] + point_offset for pt in astar_path],
             x=[pt[0] + point_offset for pt in astar_path],
+            y=[pt[1] + point_offset for pt in astar_path],
             z=[pt[2] + point_offset for pt in astar_path],
             mode="lines + markers",
             line=dict(color="red", width=4),
@@ -101,33 +140,39 @@ fig = go.Figure(
             name="A* path",
             hovertext=["A* path point"] * len(astar_path),
         ),
-        # go.Scatter3d(
-        #     x=[5.5],
-        #     y=[5.5],
-        #     z=[5.5],
-        #     mode="markers",
-        #     marker=dict(color="black", size=7.5),
-        #     name="Obstacle",
-        #     hovertext=["Obstacle point"],
+        obstacle_vol,
+        # go.Volume(
+            # x=[pt.x + point_offset for pt in obstacles],
+            # y=[pt.y + point_offset for pt in obstacles],
+            # z=[pt.z + point_offset for pt in obstacles],
+            # value=np.array([1 for obs in obstacles]),
+            # isomin=0.1,
+            # isomax=1.0,
+            # opacity=0.1,
+            # surface_count=20,  # Increase for better visibility
+            # colorscale="Greys",
+            # showscale=False,
+            # name="Obstacles",
         # ),
-        go.Volume(
-            x=[pt[0] + point_offset for pt in obstacles],
-            y=[pt[1] + point_offset for pt in obstacles],
-            z=[pt[2] + point_offset for pt in obstacles],
-            value=np.array([1 for obs in obstacles]),
-            isomin=0.1,
-            isomax=1.0,
-            opacity=0.1,
-            surface_count=100,  # Increase for better visibility
-            colorscale="Greys",
-            showscale=False,
-            name="Obstacles",
-        ),
+        # go.Mesh3d(
+        #     x=[pt.x + point_offset for pt in obstacles],
+        #     y=[pt.y + point_offset for pt in obstacles],
+        #     z=[pt.z + point_offset for pt in obstacles],
+        #
+        #     i = [7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+        #     j = [3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+        #     k = [0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+        #
+        #     opacity=0.1,
+        #     colorscale="Greys",
+        #     name="Obstacles",
+        # ),
         # go.Scatter3d(
-        #     x=[pt[0] + point_offset for pt in obstacles],
-        #     y=[pt[1] + point_offset for pt in obstacles],
-        #     z=[pt[2] + point_offset for pt in obstacles],
-        #     mode="lines + markers",
+        #     x=[pt.x + point_offset for pt in obstacles],
+        #     y=[pt.y + point_offset for pt in obstacles],
+        #     z=[pt.z + point_offset for pt in obstacles],
+        #     mode="markers",
+        #
         #     marker=dict(color="black", size=7.5),
         #     name="Obstacle",
         #     hovertext=["Obstacle point"],
@@ -164,7 +209,7 @@ fig.update_layout(
             gridcolor="lightgrey",
             showbackground=True,
             zerolinecolor="white",
-            range=[0, 10],
+            range=[0, max_x-1],
             dtick=1,
         ),
         yaxis=dict(
@@ -173,7 +218,7 @@ fig.update_layout(
             gridcolor="lightgrey",
             showbackground=True,
             zerolinecolor="white",
-            range=[0, 10],
+            range=[0, max_y-1],
             dtick=1,
         ),
         zaxis=dict(
@@ -182,7 +227,7 @@ fig.update_layout(
             gridcolor="lightgrey",
             showbackground=True,
             zerolinecolor="white",
-            range=[0, 10],
+            range=[0, max_z-1],
             dtick=1,
         ),
     ),
@@ -204,8 +249,8 @@ fig.update_layout(
 )
 
 # Save the figure as a html file
-# fig.write_html("theta_star.html", full_html=False, include_plotlyjs="cdn")
 # Show the figure in a new tab
+fig.write_html("theta_star.html", full_html=False, include_plotlyjs="cdn")
 fig.show()
 
 # grid.visualize(
