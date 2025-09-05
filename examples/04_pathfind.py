@@ -5,6 +5,7 @@ Requires plotly for visualization. Install it using `pip install plotly`
 
 import plotly.graph_objects as go
 import plotly.io as pio
+import plotly.express as px
 
 from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
@@ -13,6 +14,7 @@ from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.breadth_first import BreadthFirstFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
 from pathfinding3d.finder.bi_a_star import BiAStarFinder
+from pathfinding3d.finder.theta_star import ThetaStarFinder
 
 pio.renderers.default = "browser"
 matrix = getMap3()
@@ -47,9 +49,20 @@ grid = Grid(matrix=matrix.matrix)
 start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
 end = grid.node(matrix.end.x, matrix.end.y, matrix.end.z)
 
-list = ["Dijkstra", "A*", "BFS", "Bi A*"]
-colours = ["red", "magenta", "blue", "yellow", "magenta", "cyan", "pink", "orange"]
-point_offset = .0
+list = ["Dijkstra", "BFS", "A*","Bi A*", "Theta*"]
+colours = [
+    '#636EFA',
+    '#EF553B',
+    '#00CC96',
+    '#AB63FA',
+    '#FFA15A',
+    '#19D3F3',
+    '#FF6692',
+    '#B6E880',
+    '#FF97FF',
+    '#FECB52',
+]
+point_offset = 0.0
 
 def pathfinder(algorithm):
     finder = None
@@ -58,6 +71,7 @@ def pathfinder(algorithm):
         case "A*": finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
         case "Bi A*": finder = BiAStarFinder(diagonal_movement=DiagonalMovement.always)
         case "BFS": finder = BreadthFirstFinder(diagonal_movement=DiagonalMovement.always)
+        case "Theta*": finder = ThetaStarFinder(diagonal_movement=DiagonalMovement.only_when_no_obstacle)
 
     path , operations = finder.find_path(start, end, grid)
     path = [p.identifier for p in path]
@@ -85,13 +99,12 @@ def addtosubtitle(algorithm, operations, cost, path):
 
 def createdatapoints(algorithm, path):
     color = colours.pop(0)
-
     return go.Scatter3d(
             x=[pt[0] + point_offset for pt in path],
             y=[pt[1] + point_offset for pt in path],
             z=[pt[2] + point_offset for pt in path],
             mode="lines + markers",
-            line=dict(color=color, width=4),
+            line=dict(width=4, color=color),
             marker=dict(size=4, color=color),
             name= algorithm + " path",
             hovertext=[algorithm + " path point"] * len(path),
@@ -126,7 +139,7 @@ for x in range(max_x):
             y=np.array(Y),
             z=np.array(Z),
             value=np.array(obstacle_values),
-            isomin=0.7,
+            isomin=0.9,
             isomax=1.0,
             opacity=0.1,
             surface_count=5,  # Increase for better visibility
@@ -163,7 +176,7 @@ fig = go.Figure(
             y=[start.y + point_offset],
             z=[start.z + point_offset],
             mode="markers",
-            marker=dict(color="green", size=7.5),
+            marker=dict(color="green", size=10),
             name="Start",
             hovertext=["Start point"],
         ),
@@ -172,7 +185,7 @@ fig = go.Figure(
             y=[end.y + point_offset],
             z=[end.z + point_offset],
             mode="markers",
-            marker=dict(color="orange", size=7.5),
+            marker=dict(color="orange", size=10),
             name="End",
             hovertext=["End point"],
         ),
