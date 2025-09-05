@@ -31,25 +31,25 @@ end = grid.node(9, 0, 9)
 
 # Create an instance of the Dijkstra finder with diagonal movement allowed
 finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
-dijkstra_path, runs = finder.find_path(start, end, grid)
+dijkstra_path, dijkstra_operations = finder.find_path(start, end, grid)
 
 # Path will be a list with all the waypoints as nodes
 # Convert it to a list of coordinate tuples
 dijkstra_path = [p.identifier for p in dijkstra_path]
 
-print("operations:", runs, "path length:", len(dijkstra_path))
-print("path:", dijkstra_path)
+print("Dijkstra operations:", dijkstra_operations, "Dijkstra path length:", len(dijkstra_path))
+print("Dijkstra path:", dijkstra_path)
 
 # clean up the grid
 grid.cleanup()
 
 # Create an instance of the A* finder with diagonal movement allowed
 finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
-astar_path, runs = finder.find_path(start, end, grid)
+astar_path, astar_operations = finder.find_path(start, end, grid)
 
 astar_path = [p.identifier for p in astar_path]
 
-print("AStarFinder operations:", runs, "AStarFinder path length:", len(astar_path))
+print("AStarFinder operations:", astar_operations, "AStarFinder path length:", len(astar_path))
 print("AStarFinder path:", astar_path)
 
 
@@ -61,11 +61,22 @@ def calculate_path_cost(path):
     return cost
 
 
-theta_star_cost = calculate_path_cost(dijkstra_path)
+dijkstra_cost = calculate_path_cost(dijkstra_path)
 astar_cost = calculate_path_cost(astar_path)
 
-print("ThetaStarFinder path cost:", theta_star_cost, "\nAStarFinder path cost:", astar_cost)
+print("Dijkstra path cost:", dijkstra_cost, "\nAStar path cost:", astar_cost)
 
+subtitle = (f"""
+    Dijkstra:<br>
+        Operations: {dijkstra_operations}<br>
+        Cost: {dijkstra_cost:.2f}<br>
+        Length: {len(dijkstra_path)}
+    <br>
+    A:<br>
+        Operations: {astar_operations}<br>
+        Cost: {astar_cost:.2f} <br>
+        Length: {len(astar_path)}
+""")
 point_offset = .5
 
 fig = go.Figure(
@@ -145,8 +156,6 @@ fig = go.Figure(
 
 # Create a plotly figure to visualize the path
 
-
-# Update the layout of the figure
 fig.update_layout(
     scene=dict(
         xaxis=dict(
@@ -180,11 +189,18 @@ fig.update_layout(
     legend=dict(
         yanchor="top",
         y=0.99,
-        xanchor="left",
-        x=0.01,
+        xanchor="right",
+        x=0.99,
         bgcolor="rgba(255, 255, 255, 0.7)",
     ),
-    title=dict(text="Dijkstra vs A*"),
+    ## Title takes html <br>
+    title=dict(text=f"""
+                    Dijkstra vs A* 
+                    <br><sup>{subtitle}</sup>
+    """,),
+    font=dict(
+                family="Courier New, monospace",
+    ),
 )
 
 # Save the figure as a html file
