@@ -6,12 +6,16 @@ Requires plotly for visualization. Install it using `pip install plotly`
 import numpy as np
 import plotly.graph_objects as go
 
+from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
 
-max_x, max_y, max_z = 10, 10, 6
+matrix = getMap2()
+max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
+
+print(matrix.matrix)
 
 class Node:
     def __init__(self, x, y, z):
@@ -20,25 +24,26 @@ class Node:
         self.z = z
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
-matrix = np.ones((max_x, max_y, max_z), dtype=np.int8)
+# matrix = np.ones((max_x, max_y, max_z), dtype=np.int8)
 # obstacles are marked with 0
 
-obstacles = [Node(x,y,2) for x in range(10) for y in range(9)]
-obstacles.extend(Node(x, y, 4) for x in range(10) for y in range(1, 10))
+# obstacles = [Node(x,y,2) for x in range(10) for y in range(9)]
+# obstacles.extend(Node(x, y, 4) for x in range(10) for y in range(1, 10))
+#
+# for obs in obstacles:
+#     matrix[obs.x, obs.y, obs.z] = 0
 
-for obs in obstacles:
-    matrix[obs.x, obs.y, obs.z] = 0
 
-
-for obs in obstacles:
-    matrix[obs.x, obs.y, obs.z] = 0
 # Create a grid object from the numpy array
-print(matrix)
-grid = Grid(matrix=matrix)
+grid = Grid(matrix=matrix.matrix)
 
 # Mark the start and end points
-start = grid.node(0, 0, 0)
-end = grid.node(max_x-1, 0, max_z-1)
+
+# start = grid.node(0, 0, 0)
+# end = grid.node(max_x-1, 0, max_z-1)
+start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
+end = grid.node(matrix.end.x, matrix.end.y, matrix.end.z)
+
 
 # Create an instance of the Dijkstra finder with diagonal movement allowed
 finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
