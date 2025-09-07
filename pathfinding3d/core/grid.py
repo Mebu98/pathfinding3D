@@ -26,6 +26,8 @@ def build_nodes(
     matrix: MatrixType = None,
     inverse: bool = False,
     grid_id: Optional[int] = None,
+    grounded: Optional[bool] = False,
+    max_fly: Optional[int] = 1,
 ) -> List[List[List[GridNode]]]:
     """
     Create nodes according to grid size. If a matrix is given it
@@ -48,6 +50,11 @@ def build_nodes(
         walkable. Otherwise all values that are 0 will be considered walkable.
     grid_id : int, optional
         The id of the grid.
+    grounded : bool, optional
+        if true, the searcher will not be allowed to be "fly"
+    max_fly : int, optional
+        The maximum height the algo is allowed to "fly".
+
 
     Returns
     -------
@@ -69,7 +76,12 @@ def build_nodes(
                 # (1 and up becomes obstacle and 0 or everything negative marks a
                 #  free cells)
                 weight = int(matrix[x][y][z]) if use_matrix else 1
-                walkable = weight <= 0 if inverse else weight >= 1
+                if grounded:
+                    walkable = 0
+                    if z == 0 or matrix[x][y][z - max_fly] == 0:
+                        walkable = weight <= 0 if inverse else weight >= 1
+                else:
+                    walkable = weight <= 0 if inverse else weight >= 1
 
                 nodes[x][y].append(GridNode(x=x, y=y, z=z, walkable=walkable, weight=weight, grid_id=grid_id))
     return nodes
@@ -88,6 +100,8 @@ class Grid:
         matrix: MatrixType = None,
         grid_id: Optional[int] = None,
         inverse: bool = False,
+        grounded: Optional[bool] = False,
+        max_fly: Optional[int] = 1,
     ):
         """
         Create a new grid.
@@ -110,7 +124,7 @@ class Grid:
         """
         self.width, self.height, self.depth = self._validate_dimensions(width, height, depth, matrix)
         self.nodes = (
-            build_nodes(self.width, self.height, self.depth, matrix, inverse, grid_id)
+            build_nodes(self.width, self.height, self.depth, matrix, inverse, grid_id, grounded, max_fly)
             if self.is_valid_grid()
             else [[[]]]
         )

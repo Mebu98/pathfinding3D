@@ -41,7 +41,7 @@ max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matr
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
 # Create a grid object from the numpy array
-grid = Grid(matrix=matrix.matrix)
+grid = Grid(matrix=matrix.matrix, grounded=True)
 
 # Mark the start and end points
 start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
@@ -206,7 +206,7 @@ def obs_cubes():
         for y in range(max_y):
             for z in range(max_z):
                 node = grid.node(x, y, z)
-                if not node.walkable:
+                if node.weight == 0:
                     obstacle_nodes.append(Node(x, y, z))
 
     for pt in obstacle_nodes:
