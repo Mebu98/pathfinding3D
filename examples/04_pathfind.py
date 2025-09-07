@@ -191,6 +191,7 @@ def obs_volume():
                 colorscale="Greys",
                 showscale=False,
                 name="Obstacles",
+                hovertext=["Obstacles"],
             )
     return obstacle_vol
 
@@ -209,7 +210,8 @@ def obs_cubes():
                 if node.weight == 0:
                     obstacle_nodes.append(Node(x, y, z))
 
-    for pt in obstacle_nodes:
+    for n, pt in enumerate(obstacle_nodes):
+
         mesh_x = [0, 0, 1, 1, 0, 0, 1, 1]
         mesh_y = [0, 1, 1, 0, 0, 1, 1, 0]
         mesh_z = [0, 0, 0, 0, 1, 1, 1, 1]
@@ -222,6 +224,9 @@ def obs_cubes():
         return_cubes.append(
             go.Mesh3d(
                 hovertext="obstacle",
+                name="Obstacles",
+                legendgroup="obstacles",
+                showlegend=[False, True][n==1],
                 color="blue",
                 opacity=.05,
                 alphahull=1,
