@@ -180,6 +180,12 @@ def getMap3():
     m = Map(grid, start, end)
     return m
 
+class States:
+    def __init__(self, air, start, end):
+        self.air = air
+        self.start = start
+        self.end = end
+
 def getMap4():
     # """
     # Found a very jank way of turning a minecraft area into our desired input.
@@ -209,23 +215,46 @@ def getMap4():
 
     json_file = open('ifi_house_test.json', 'r').read()
     data = json.loads(json_file)
-    blocks = data.get('blocks')
+    states = States(0,0,0)
 
-    air = 2 # index of "air" in the .json palette Todo: extract this dynamically from the .json
+    # Start and end are found later by green and red wool.
+    start = Node(0,0,0)
+    end = Node(0, 0, 0)
 
-    nodes = np.ones([30, 6, 10]) # Extract this dynamically as well
+    palette = data['palette']
+    for i, p in enumerate(palette):
+        match p['Name']:
+            case 'minecraft:air':
+                states.air = i
+            case 'minecraft:green_wool':
+                states.start = i
+            case 'minecraft:red_wool':
+                states.end = i
+        # if p['Name'] == 'minecraft:air':
+        #     air = i
+
+    dimensions = data['size']
+    nodes = np.ones([dimensions[0], dimensions[1], dimensions[2]])
     nodes = nodes.tolist()
-    print(blocks)
+
+    blocks = data.get('blocks')
     for block in blocks:
         pos = block.get('pos')
-        if block.get('state') == air:
-            nodes[pos[0]][pos[1]][pos[2]] = 1
-        else:
-            nodes[pos[0]][pos[1]][pos[2]] = 0
+        state = block.get('state')
 
-    start = Node(5, 2, 4)
-    end = Node(26, 0, 0)
-    print(nodes)
+        match state:
+            case states.air:
+                nodes[pos[0]][pos[1]][pos[2]] = 1
+
+            case states.start:
+                start = Node(pos[0], pos[2], pos[1])
+
+            case states.end:
+                end = Node(pos[0], pos[2], pos[1])
+
+            case _:
+                nodes[pos[0]][pos[1]][pos[2]] = 0
+
 
     nodes = np.swapaxes(nodes, 2, 1) # Our code uses XYZ, while input uses XZY, I think.
     matrix = Map(nodes, start, end)
