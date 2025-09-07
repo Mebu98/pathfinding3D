@@ -10,6 +10,7 @@ from plotly.graph_objs import Volume
 from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
+from pathfinding3d.core.heuristic import *
 from pathfinding3d.finder.a_star import AStarFinder
 from pathfinding3d.finder.breadth_first import BreadthFirstFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
@@ -29,11 +30,11 @@ class Node:
 #          'cocalc', 'databricks', 'json', 'png', 'jpeg', 'jpg', 'svg',
 #          'pdf', 'browser', 'firefox', 'chrome', 'chromium', 'iframe',
 #          'iframe_connected', 'sphinx_gallery', 'sphinx_gallery_png']
-pio.renderers.default = "browser"
+# pio.renderers.default = "browser"
 
 # 2 Obstacle modes so far, Cubes and Volume
 obstacleMode = "Cubes"
-matrix = getMap3()
+matrix = getMap4()
 max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
 
 
@@ -46,7 +47,11 @@ grid = Grid(matrix=matrix.matrix)
 start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
 end = grid.node(matrix.end.x, matrix.end.y, matrix.end.z)
 
-algo_list = ["Dijkstra", "BFS", "A*", "Bi A*", "Theta*"]
+algo_list = ["Dijkstra", "BFS",
+             "A* (octile)", "Bi A* (octile)", # Octile heuristic is default heuristic, but might be interesting too look at?
+             "A* (euclidean)", "Bi A* (euclidean)"
+             # "Theta*", # Theta* is pretty neat, but also pretty weird... idk if we should include it.
+             ]
 
 # Colours are added to the algo based on index, so algo[0] has colours[0], etc.
 colours = [
@@ -74,7 +79,12 @@ def pathfinder(algorithm):
         case "A*": finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
         case "Bi A*": finder = BiAStarFinder(diagonal_movement=DiagonalMovement.always)
         case "BFS": finder = BreadthFirstFinder(diagonal_movement=DiagonalMovement.always)
-        case "Theta*": finder = ThetaStarFinder(diagonal_movement=DiagonalMovement.always)
+
+        case "A* (octile)": finder = AStarFinder(diagonal_movement=DiagonalMovement.always, heuristic=octile)
+        case "Bi A* (octile)": finder = BiAStarFinder(diagonal_movement=DiagonalMovement.always, heuristic=octile)
+
+        case "A* (euclidean)": finder = AStarFinder(diagonal_movement=DiagonalMovement.always, heuristic=euclidean)
+        case "Bi A* (euclidean)": finder = BiAStarFinder(diagonal_movement=DiagonalMovement.always, heuristic=euclidean)
 
     path , operations = finder.find_path(start, end, grid)
     path = [p.identifier for p in path]
@@ -213,7 +223,7 @@ def obs_cubes():
             go.Mesh3d(
                 hovertext="obstacle",
                 color="blue",
-                opacity=.2,
+                opacity=.05,
                 alphahull=1,
                 flatshading=True,
                 x=mesh_x,
