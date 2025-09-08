@@ -214,8 +214,13 @@ def getMap4():
     #     put the new json in here and do as below (for now at least)
     # """
 
-    cwd = os.getcwd()
-    json_file = open(cwd + '\\examples\\ifi_house_test.json', 'r').read()
+    file_name = 'ifi_house_test.json'
+    try:
+        cwd = os.getcwd()
+        json_file = open(cwd + '\\examples\\' + file_name, 'r').read()
+    except FileNotFoundError:
+        json_file = open(file_name, 'r').read()
+
     data = json.loads(json_file)
     states = States(0,0,0)
 
