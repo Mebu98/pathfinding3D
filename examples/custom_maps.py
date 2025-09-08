@@ -248,22 +248,28 @@ def getMap4():
     for block in blocks:
         pos = block.get('pos')
         state = block.get('state')
+        x, y, z = 0, 1, 2
 
         match state:
             case states.air:
-                nodes[pos[0]][pos[1]][pos[2]] = 1
+                nodes[pos[x]][pos[y]][pos[z]] = 1
 
             case states.start:
-                start = Node(pos[0], pos[2], pos[1])
+                start = Node(pos[x], pos[z], pos[y])
 
             case states.end:
-                end = Node(pos[0], pos[2], pos[1])
+                end = Node(pos[x], pos[z], pos[y])
 
             case _:
-                nodes[pos[0]][pos[1]][pos[2]] = 0
-
+                nodes[pos[x]][pos[y]][pos[z]] = 0
 
     nodes = np.swapaxes(nodes, 2, 1) # Our code uses XYZ, while input uses XZY, I think.
+
+    # Attempting to "unmirror" the map
+    # nodes = np.flip(nodes, 2) # "Unmirror" the map?, messes up start and end :(
+    # Unmirroring using swapaxes might mess up the map if it has different max x and y (might also mess up start and end)
+    #nodes = np.swapaxes(nodes, 0, 1)
+
     matrix = Map(nodes, start, end)
 
     return matrix

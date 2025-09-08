@@ -41,7 +41,7 @@ max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matr
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
 # Create a grid object from the numpy array
-grid = Grid(matrix=matrix.matrix, grounded=True)
+grid = Grid(matrix=matrix.matrix)
 
 # Mark the start and end points
 start = grid.node(matrix.start.x, matrix.start.y, matrix.start.z)
