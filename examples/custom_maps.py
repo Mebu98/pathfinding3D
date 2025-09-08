@@ -1,4 +1,5 @@
 import json
+import os
 
 import numpy as np
 
@@ -213,7 +214,8 @@ def getMap4():
     #     put the new json in here and do as below (for now at least)
     # """
 
-    json_file = open('ifi_house_test.json', 'r').read()
+    cwd = os.getcwd()
+    json_file = open(cwd + '\\examples\\ifi_house_test.json', 'r').read()
     data = json.loads(json_file)
     states = States(0,0,0)
 

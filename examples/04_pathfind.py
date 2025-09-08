@@ -49,8 +49,8 @@ end = grid.node(matrix.end.x, matrix.end.y, matrix.end.z)
 
 algo_list = ["Dijkstra", "BFS",
              "A* (octile)", "Bi A* (octile)", # Octile heuristic is default heuristic, but might be interesting too look at?
-             "A* (euclidean)", "Bi A* (euclidean)"
-             # "Theta*", # Theta* is pretty neat, but also pretty weird... idk if we should include it.
+             "A* (euclidean)", "Bi A* (euclidean)",
+             "Theta*" # Theta* is pretty neat, but also pretty weird... idk if we should include it.
              ]
 
 # Colours are added to the algo based on index, so algo[0] has colours[0], etc.
@@ -85,6 +85,8 @@ def pathfinder(algorithm):
 
         case "A* (euclidean)": finder = AStarFinder(diagonal_movement=DiagonalMovement.always, heuristic=euclidean)
         case "Bi A* (euclidean)": finder = BiAStarFinder(diagonal_movement=DiagonalMovement.always, heuristic=euclidean)
+
+        case "Theta*": finder = ThetaStarFinder(diagonal_movement=DiagonalMovement.always)
 
     path , operations = finder.find_path(start, end, grid)
     path = [p.identifier for p in path]
@@ -227,8 +229,8 @@ def obs_cubes():
                 name="Obstacles",
                 legendgroup="obstacles",
                 showlegend=[False, True][n==1],
-                color="blue",
-                opacity=.05,
+                color="black",
+                opacity=.25,
                 alphahull=1,
                 flatshading=True,
                 x=mesh_x,
