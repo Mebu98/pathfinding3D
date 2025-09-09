@@ -265,10 +265,11 @@ def getMap4():
 
     nodes = np.swapaxes(nodes, 2, 1) # Our code uses XYZ, while input uses XZY, I think.
 
-    # Attempting to "unmirror" the map
-    # nodes = np.flip(nodes, 2) # "Unmirror" the map?, messes up start and end :(
-    # Unmirroring using swapaxes might mess up the map if it has different max x and y (might also mess up start and end)
-    #nodes = np.swapaxes(nodes, 0, 1)
+    # "Unmirror" the map
+    nodes = np.flip(nodes, 1)
+    max_y = len(nodes[0])
+    start.y = (max_y - start.y) -1
+    end.y = (max_y - end.y) -1
 
     matrix = Map(nodes, start, end)
 
