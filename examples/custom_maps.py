@@ -10,10 +10,10 @@ class Node (object):
         self.z = z
 
 class Map:
-    def __init__(self, matrix, start, end):
+    def __init__(self, matrix, start_points, end_points):
         self.matrix = matrix
-        self.start = start
-        self.end = end
+        self.start_points = start_points
+        self.end_points = end_points
 
 
 def getMap1():
@@ -214,7 +214,7 @@ def getMap4():
     #     put the new json in here and do as below (for now at least)
     # """
 
-    file_name = 'ifi_house_test.json'
+    file_name = 'in5060_map_48x48x20.json'
     try:
         cwd = os.getcwd()
         json_file = open(cwd + '\\examples\\' + file_name, 'r').read()
@@ -225,8 +225,8 @@ def getMap4():
     states = States(0,0,0)
 
     # Start and end are found later by green and red wool.
-    start = Node(0,0,0)
-    end = Node(0, 0, 0)
+    start = []
+    end = []
 
     palette = data['palette']
     for i, p in enumerate(palette):
@@ -255,10 +255,10 @@ def getMap4():
                 nodes[pos[x]][pos[y]][pos[z]] = 1
 
             case states.start:
-                start = Node(pos[x], pos[z], pos[y])
+                start.append(Node(pos[x], pos[z], pos[y]))
 
             case states.end:
-                end = Node(pos[x], pos[z], pos[y])
+                end.append(Node(pos[x], pos[z], pos[y]))
 
             case _:
                 nodes[pos[x]][pos[y]][pos[z]] = 0
@@ -268,8 +268,12 @@ def getMap4():
     # "Unmirror" the map
     nodes = np.flip(nodes, 1)
     max_y = len(nodes[0])
-    start.y = (max_y - start.y) -1
-    end.y = (max_y - end.y) -1
+
+    for s in start:
+        s.y = (max_y - s.y) -1
+
+    for e in end:
+        e.y = (max_y - e.y) -1
 
     matrix = Map(nodes, start, end)
 

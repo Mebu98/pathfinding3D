@@ -1,17 +1,45 @@
+import random
+from random import Random
 from typing import Optional
 
 import plotly.graph_objects as go
 import numpy as np
+from _plotly_utils.colors.qualitative import Plotly
+from narwhals import Array
+from plotly.graph_objs import Figure, Volume
 
 from examples.custom_maps import Node
 
 
 def visualize(grid, start, end,
                   max_x, max_y, max_z,
-                  datapoints, subtitle,
+                  datapoints, subtitle: Optional[str] = None,
               point_offset: Optional[float] = 0.0,
               obs_offset: Optional[float] = .5,
               obstacle_mode: Optional[str] = "cubes",):
+
+    fig = create_fig(grid, datapoints, start, end, max_x, max_y, max_z, obstacle_mode, point_offset, obs_offset, subtitle)
+
+    # Save the figure as a html file
+    # Show the figure in a new tab
+    fig.write_html(f"theta_star.html", full_html=False, include_plotlyjs="cdn")
+    fig.show()
+
+    # grid.visualize(
+    #   path=astar_path,  # optionally visualize the path
+    #   start=start,
+    #   end=end,
+    #   visualize_weight=True,  # weights above 1 (default) will be visualized
+    #   save_html=True,  # save visualization to html file
+    #   save_to="path_visualization.html",  # specify the path to save the html file
+    #   always_show=True,  # always show the visualization in the browser
+    # )
+
+    # return fig
+
+
+def create_fig(grid, datapoints, start, end, max_x, max_y, max_z, obstacle_mode: str | None, point_offset: float | None, obs_offset: float | None,
+               subtitle: str | None) -> Figure:
     layout = go.Layout(
         scene=go.layout.Scene(
             aspectmode='manual',
@@ -20,23 +48,26 @@ def visualize(grid, start, end,
             ))
     )
 
+    start_arr = np.array(start) if type(start) is list else [start]
+    end_arr = np.array(end) if type(end) is list else [end]
+
     fig = go.Figure(
         layout=layout,
         data=[
             # Add start and endpoints
             go.Scatter3d(
-                x=[start.x + point_offset],
-                y=[start.y + point_offset],
-                z=[start.z + point_offset],
+                x=[s.x + point_offset for s in start_arr],
+                y=[s.y + point_offset for s in start_arr],
+                z=[s.z + point_offset for s in start_arr],
                 mode="markers",
                 marker=dict(color="green", size=10),
                 name="Start",
                 hovertext=["Start point"],
             ),
             go.Scatter3d(
-                x=[end.x + point_offset],
-                y=[end.y + point_offset],
-                z=[end.z + point_offset],
+                x=[end.x + point_offset for end in end_arr],
+                y=[end.y + point_offset for end in end_arr],
+                z=[end.z + point_offset for end in end_arr],
                 mode="markers",
                 marker=dict(color="orange", size=10),
                 name="End",
@@ -80,7 +111,6 @@ def visualize(grid, start, end,
     # 3d boxes for obstacles instead of volume... idk how to make it good :(
     def obs_cubes():
         return_cubes = []
-        obs_offset = .5
         obs_scale = [1, 1, 1]
         obstacle_nodes = []
 
@@ -177,18 +207,4 @@ def visualize(grid, start, end,
             family="Courier New, monospace",
         ),
     )
-
-    # Save the figure as a html file
-    # Show the figure in a new tab
-    fig.write_html("theta_star.html", full_html=False, include_plotlyjs="cdn")
-    fig.show()
-
-    # grid.visualize(
-    #   path=astar_path,  # optionally visualize the path
-    #   start=start,
-    #   end=end,
-    #   visualize_weight=True,  # weights above 1 (default) will be visualized
-    #   save_html=True,  # save visualization to html file
-    #   save_to="path_visualization.html",  # specify the path to save the html file
-    #   always_show=True,  # always show the visualization in the browser
-    # )
+    return fig

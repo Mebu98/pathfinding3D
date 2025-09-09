@@ -4,8 +4,6 @@ Requires plotly for visualization. Install it using `pip install plotly`
 """
 
 import plotly.graph_objects as go
-import plotly.io as pio
-from plotly.graph_objs import Volume
 
 from examples.IN5060_visualizer import visualize
 from examples.custom_maps import *
@@ -24,6 +22,13 @@ class Node:
         self.y = y
         self.z = z
 
+class Run:
+    def __init__(self, start, end, algos, results):
+        self.start = start
+        self.end = end
+        self.algos = algos
+        self.results = results
+
 # Change this to change Plotly renderer
 # Available renderers:
 #         ['plotly_mimetype', 'jupyterlab', 'nteract', 'vscode',
@@ -33,22 +38,28 @@ class Node:
 #          'iframe_connected', 'sphinx_gallery', 'sphinx_gallery_png']
 # pio.renderers.default = "browser"
 
-# 2 Obstacle modes so far, Cubes and Volume
+#Multiple modes, Individual (one plot for each combo), Combined (all at once...) and Last
+visualizeMode = "Individual"
+
+# 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
+
 matrix = getMap4()
 max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
 
+runs = [] # Array of individual Runs (all algos from start[i] to end[j]) TODO
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
 # Create a grid object from the numpy array
 grid = Grid(matrix=matrix.matrix)
 # Mark the start and end points
-start_points = [grid.node(matrix.start.x, matrix.start.y, matrix.start.z)]
-end_points = [grid.node(matrix.end.x, matrix.end.y, matrix.end.z)]
+start_points = [grid.node(start.x, start.y, start.z) for start in matrix.start_points]
+end_points = [grid.node(end.x, end.y, end.z) for end in matrix.end_points]
 
 algo_list = ["Dijkstra", "BFS",
-             "A* (octile)", "Bi A* (octile)", # Octile heuristic is default heuristic, but might be interesting too look at?
-             "A* (euclidean)", "Bi A* (euclidean)",
+             "A*", "Bi A*",
+             # "A* (octile)", "Bi A* (octile)", # Octile heuristic is default heuristic, but might be interesting too look at?
+             # "A* (euclidean)", "Bi A* (euclidean)",
              "Theta*" # Theta* is pretty neat, but also pretty weird... idk if we should include it.
              ]
 
@@ -122,6 +133,10 @@ def create_data_points(algorithm, path):
             hovertext=[algorithm + " path point"] * len(path),
         )
 
+datapoints = [] # Keep last datapoints for displaymode "Last"
+subtitle = f"""""" # Same for subtitle
+all_data_points = []
+
 for start in start_points:
     for end in end_points:
         datapoints = []
@@ -131,8 +146,18 @@ for start in start_points:
             cost = calculate_path_cost(path)
             subtitle += add_to_subtitle(item, operations, cost, path)
             datapoints.append(create_data_points(item, path))
+            all_data_points.append(create_data_points(item, path))
             grid.cleanup()
 
-        visualize(grid=grid, start=start, end=end,
+        # run = Run(start, end, algo_list, )
+
+        if visualizeMode.lower() == "individual": visualize(grid=grid, start=start, end=end,
                   max_x=max_x, max_y=max_y, max_z=max_z,
                   datapoints=datapoints, subtitle=subtitle)
+
+if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points, end=end_points,
+          max_x=max_x, max_y=max_y, max_z=max_z,
+          datapoints=all_data_points)
+
+if visualizeMode.lower() == "last": visualize(grid=grid, start=start_points[-1], end=end_points[-1],
+                                              max_x=max_x, max_y=max_y, max_z=max_z, datapoints=datapoints, subtitle=subtitle)
