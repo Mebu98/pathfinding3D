@@ -21,13 +21,32 @@ class Node:
         self.x = x
         self.y = y
         self.z = z
+    def __repr__(self):
+        return f"Node({self.x}, {self.y}, {self.z})"
 
 class Run:
-    def __init__(self, start, end, algos, results):
+    def __init__(self, name, start, end, operations, cost, steps):
+        self.name = name
         self.start = start
         self.end = end
-        self.algos = algos
-        self.results = results
+        self.operations = operations
+        self.cost = cost
+        self.steps = steps
+
+    def __repr__(self):
+        return f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, {end.z}), operations: {operations}, cost: {self.cost}, steps: {self.steps})"
+
+class Result:
+    name = None
+    runs = []
+    def __init__(self, name, runs):
+        self.name = name
+        self.runs = runs
+
+    def __repr__(self):
+        return f"Result({self.name}, {self.runs})"
+
+results = []
 
 # Change this to change Plotly renderer
 # Available renderers:
@@ -46,8 +65,6 @@ obstacleMode = "Cubes"
 
 matrix = getMap4()
 max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matrix[0][0])
-
-runs = [] # Array of individual Runs (all algos from start[i] to end[j]) TODO
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
 # Create a grid object from the numpy array
@@ -141,15 +158,26 @@ for start in start_points:
     for end in end_points:
         datapoints = []
         subtitle = f""""""
-        for i, item in enumerate(algo_list):
-            path, operations = pathfinder(item, start, end)
+        for i, algo in enumerate(algo_list):
+            path, operations = pathfinder(algo, start, end)
             cost = calculate_path_cost(path)
-            subtitle += add_to_subtitle(item, operations, cost, path)
-            datapoints.append(create_data_points(item, path))
-            all_data_points.append(create_data_points(item, path))
+            subtitle += add_to_subtitle(algo, operations, cost, path)
+            datapoints.append(create_data_points(algo, path))
+            all_data_points.append(create_data_points(algo, path))
             grid.cleanup()
 
-        # run = Run(start, end, algo_list, )
+            run = Run(algo, start, end, operations, cost, len(all_data_points))
+
+            added = False
+            for ri, result in enumerate(results):
+                if result.name.lower() == algo.lower():
+                    results[ri].runs.append(run)
+                    added = True
+                    break
+
+            if not added:
+                results.append(Result(algo.lower(), [run]))
+
 
         if visualizeMode.lower() == "individual": visualize(grid=grid, start=start, end=end,
                   max_x=max_x, max_y=max_y, max_z=max_z,
@@ -161,3 +189,5 @@ if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points,
 
 if visualizeMode.lower() == "last": visualize(grid=grid, start=start_points[-1], end=end_points[-1],
                                               max_x=max_x, max_y=max_y, max_z=max_z, datapoints=datapoints, subtitle=subtitle)
+
+print(results)
