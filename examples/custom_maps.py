@@ -214,7 +214,7 @@ def getMap4():
     #     put the new json in here and do as below (for now at least)
     # """
 
-    file_name = 'in5060_map_48x48x20.json'
+    file_name = 'ifi_house_test.json'
     try:
         cwd = os.getcwd()
         json_file = open(cwd + '\\examples\\' + file_name, 'r').read()

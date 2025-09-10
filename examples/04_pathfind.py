@@ -2,6 +2,7 @@
 This example shows how Dijkstra algorithm differs from A* algorithm
 Requires plotly for visualization. Install it using `pip install plotly`
 """
+import time
 
 import plotly.graph_objects as go
 
@@ -25,16 +26,17 @@ class Node:
         return f"Node({self.x}, {self.y}, {self.z})"
 
 class Run:
-    def __init__(self, name, start, end, operations, cost, steps):
+    def __init__(self, name, start, end, time, operations, cost, steps):
         self.name = name
         self.start = start
         self.end = end
+        self.time = time
         self.operations = operations
         self.cost = cost
         self.steps = steps
 
     def __repr__(self):
-        return f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, {end.z}), operations: {operations}, cost: {self.cost}, steps: {self.steps})"
+        return f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, time(s): {self.time}, {end.z}), operations: {operations}, cost: {self.cost}, steps: {self.steps})"
 
 class Result:
     name = None
@@ -48,17 +50,9 @@ class Result:
 
 results = []
 
-# Change this to change Plotly renderer
-# Available renderers:
-#         ['plotly_mimetype', 'jupyterlab', 'nteract', 'vscode',
-#          'notebook', 'notebook_connected', 'kaggle', 'azure', 'colab',
-#          'cocalc', 'databricks', 'json', 'png', 'jpeg', 'jpg', 'svg',
-#          'pdf', 'browser', 'firefox', 'chrome', 'chromium', 'iframe',
-#          'iframe_connected', 'sphinx_gallery', 'sphinx_gallery_png']
-# pio.renderers.default = "browser"
 
 #Multiple modes, Individual (one plot for each combo), Combined (all at once...) and Last
-visualizeMode = "Individual"
+visualizeMode = "individual"
 
 # 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
@@ -68,7 +62,9 @@ max_x, max_y, max_z = len(matrix.matrix), len(matrix.matrix[0]), len(matrix.matr
 
 # Create a 3D numpy array with 0s as obstacles and 1s as walkable paths
 # Create a grid object from the numpy array
-grid = Grid(matrix=matrix.matrix)
+grid = Grid(matrix=matrix.matrix
+            # , grounded=True, max_fly=10
+            )
 # Mark the start and end points
 start_points = [grid.node(start.x, start.y, start.z) for start in matrix.start_points]
 end_points = [grid.node(end.x, end.y, end.z) for end in matrix.end_points]
@@ -159,14 +155,21 @@ for start in start_points:
         datapoints = []
         subtitle = f""""""
         for i, algo in enumerate(algo_list):
+            start_time = time.time()
+
             path, operations = pathfinder(algo, start, end)
+
+            end_time = time.time()
+            time_taken = end_time - start_time
+
+            ## Calculations for visualisations and data gathering, not sure if it should be a part of the time taken or not?
             cost = calculate_path_cost(path)
+            all_data_points.append(create_data_points(algo, path))
             subtitle += add_to_subtitle(algo, operations, cost, path)
             datapoints.append(create_data_points(algo, path))
-            all_data_points.append(create_data_points(algo, path))
             grid.cleanup()
 
-            run = Run(algo, start, end, operations, cost, len(all_data_points))
+            run = Run(algo, start, end, time_taken, operations, cost, len(datapoints))
 
             added = False
             for ri, result in enumerate(results):

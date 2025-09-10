@@ -53,7 +53,7 @@ def build_nodes(
     grounded : bool, optional
         if true, the searcher will not be allowed to be "fly"
     max_fly : int, optional
-        The maximum height the algo is allowed to "fly".
+        (Currently bugged) The maximum height the algo is allowed to "fly".
 
 
     Returns
@@ -77,8 +77,9 @@ def build_nodes(
                 #  free cells)
                 weight = int(matrix[x][y][z]) if use_matrix else 1
                 if grounded:
+                    ## Fly is a bit bugged.
                     walkable = 0
-                    if z == 0 or matrix[x][y][z - max_fly] == 0:
+                    if z == 0 or z < max_fly:
                         walkable = weight <= 0 if inverse else weight >= 1
                 else:
                     walkable = weight <= 0 if inverse else weight >= 1
