@@ -53,7 +53,7 @@ results = []
 
 
 #Multiple modes, Individual (one plot for each combo), Combined (all at once...), Last (for last start + end)
-visualizeMode = "last"
+visualizeMode = "Combined"
 
 # 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
@@ -92,7 +92,7 @@ colours = [
 ]
 
 
-point_offset = 0.0
+point_offset = .0
 
 def pathfinder(algorithm, l_start, l_end):
     finder = None

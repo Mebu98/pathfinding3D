@@ -16,7 +16,7 @@ from examples.custom_maps import Node
 def visualize(grid, start, end,
                   max_x, max_y, max_z,
                   datapoints, subtitle: Optional[str] = None,
-              point_offset: Optional[float] = 0.0,
+              point_offset: Optional[float] = .0,
               obs_offset: Optional[float] = .5,
               obstacle_mode: Optional[str] = "cubes",):
 
@@ -112,8 +112,6 @@ def create_fig(grid, datapoints, start, end, max_x, max_y, max_z, obstacle_mode:
 
     # 3d boxes for obstacles instead of volume... idk how to make it good :(
     def obs_cubes():
-        return_cubes = []
-        obs_scale = [1, 1, 1]
         obstacle_nodes = []
 
         for x in range(max_x):
@@ -123,41 +121,39 @@ def create_fig(grid, datapoints, start, end, max_x, max_y, max_z, obstacle_mode:
                     if node.weight == 0:
                         obstacle_nodes.append(Node(x, y, z))
 
-        for n, pt in enumerate(obstacle_nodes):
+        def cubes(x=None, y=None, z=None, mode='', db=None):
+            size = .5
+            xx = []
+            yy = []
+            zz = []
+            i = []
+            j = []
+            k = []
 
-            mesh_x = [0, 0, 1, 1, 0, 0, 1, 1]
-            mesh_y = [0, 1, 1, 0, 0, 1, 1, 0]
-            mesh_z = [0, 0, 0, 0, 1, 1, 1, 1]
+            for index in range(len(x)):
+                xx += [x[index] - (size), x[index] - (size), x[index] + (size), x[index] +
+                       (size), x[index] - (size), x[index] - (size), x[index] + (size), x[index] + (size)]
+                yy += [y[index] - (size), y[index] + (size), y[index] + (size), y[index] -
+                       (size), y[index] - (size), y[index] + (size), y[index] + (size), y[index] - (size)]
+                zz += [z[index] - (size), z[index] - (size), z[index] - (size), z[index] -
+                       (size), z[index] + (size), z[index] + (size), z[index] + (size), z[index] + (size)]
+                i += [index * 8 + 7, index * 8 + 0, index * 8 + 0, index * 8 + 0, index * 8 + 4, index * 8 + 4,
+                      index * 8 + 6, index * 8 + 6, index * 8 + 4, index * 8 + 0, index * 8 + 3, index * 8 + 2]
+                j += [index * 8 + 3, index * 8 + 4, index * 8 + 1, index * 8 + 2, index * 8 + 5, index * 8 + 6,
+                      index * 8 + 5, index * 8 + 2, index * 8 + 0, index * 8 + 1, index * 8 + 6, index * 8 + 3]
+                k += [index * 8 + 0, index * 8 + 7, index * 8 + 2, index * 8 + 3, index * 8 + 6, index * 8 + 7,
+                      index * 8 + 1, index * 8 + 1, index * 8 + 5, index * 8 + 5, index * 8 + 7, index * 8 + 6]
 
-            for i in range(len(mesh_x)):
-                mesh_x[i] = (mesh_x[i] * obs_scale[0]) + pt.x - obs_offset
-                mesh_y[i] = (mesh_y[i] * obs_scale[1]) + pt.y - obs_offset
-                mesh_z[i] = (mesh_z[i] * obs_scale[2]) + pt.z - obs_offset
+            return go.Mesh3d(x=xx, y=yy, z=zz, i=i, j=j, k=k,
+                             showlegend=True, name='Obstacles',
+                             legendgroup='Obstacles',
+                             showscale=True, opacity=0.1, color="black")
 
-            return_cubes.append(
-                go.Mesh3d(
-                    hovertext="obstacle",
-                    name="Obstacles",
-                    legendgroup="obstacles",
-                    showlegend=[False, True][n == 1],
-                    color="black",
-                    opacity=.25,
-                    alphahull=1,
-                    flatshading=True,
-                    x=mesh_x,
-                    y=mesh_y,
-                    z=mesh_z,
-                    # x=[pt.x- 1 + obs_offset, pt.x - 1 + obs_offset, pt.x + obs_offset, pt.x + obs_offset, pt.x-1 + obs_offset, pt.x-1 + obs_offset, pt.x + obs_offset, pt.x + obs_offset],
-                    # y=[pt.y- 1 + obs_offset, pt.y + obs_offset, pt.y + obs_offset, pt.y-1 + obs_offset, pt.y-1 + obs_offset, pt.y + obs_offset, pt.y + obs_offset, pt.y-1 + obs_offset],
-                    # z=[pt.z -1 + obs_offset, pt.z - 1 + obs_offset, pt.z - 1 + obs_offset, pt.z - 1 + obs_offset, pt.z + obs_offset, pt.z + obs_offset, pt.z + obs_offset, pt.z + obs_offset],
-                )
-            )
+        return_cubes = cubes(x=[o.x for o in obstacle_nodes],y=[o.y for o in obstacle_nodes], z=[o.z for o in obstacle_nodes],)
         return return_cubes
 
     if obstacle_mode.lower() == "cubes":
-        cubes = obs_cubes()
-        for cube in cubes:
-            fig.add_trace(cube)
+        fig.add_trace(obs_cubes())
     elif obstacle_mode.lower() == "volume":
         fig.add_trace(obs_volume())
 
