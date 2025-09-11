@@ -36,7 +36,8 @@ class Run:
         self.steps = steps
 
     def __repr__(self):
-        return f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, time(s): {self.time}, {end.z}), operations: {operations}, cost: {self.cost}, steps: {self.steps})"
+        return (f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, {end.z}),"
+                f" time(s): {self.time}, operations: {operations}, cost: {self.cost}, steps: {self.steps})")
 
 class Result:
     name = None
@@ -51,8 +52,8 @@ class Result:
 results = []
 
 
-#Multiple modes, Individual (one plot for each combo), Combined (all at once...) and Last
-visualizeMode = "individual"
+#Multiple modes, Individual (one plot for each combo), Combined (all at once...), Last (for last start + end)
+visualizeMode = "last"
 
 # 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
