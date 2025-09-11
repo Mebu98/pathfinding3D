@@ -5,6 +5,10 @@ Requires plotly for visualization. Install it using `pip install plotly`
 import time
 
 import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.graph_objs import Volume
+import plotly.express as px
+import pandas as pd
 
 from examples.IN5060_visualizer import visualize
 from examples.custom_maps import *
@@ -193,4 +197,39 @@ if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points,
 if visualizeMode.lower() == "last": visualize(grid=grid, start=start_points[-1], end=end_points[-1],
                                               max_x=max_x, max_y=max_y, max_z=max_z, datapoints=datapoints, subtitle=subtitle)
 
+
+
+
 print(results)
+
+names=[]
+operations=[]
+costs=[]
+times=[]
+all_algorithms=[]
+
+# Extract data for plotting
+for result in results:
+    for run in result.runs:
+        names.append(run.name)
+        operations.append(run.operations)
+        costs.append(run.cost)
+        times.append(run.time)
+        all_algorithms.append(result.name)
+
+print("name-list ",all_algorithms,"\n costlist:  ", names,"\n time:  ", times)
+
+# Create table
+fil = go.Figure(data=[go.Table(
+    header=dict(values=["name", "operation", "cost", "time"],
+                fill_color='paleturquoise',
+                align='left'),
+    cells=dict(values=[all_algorithms, operations, costs, times],
+               fill_color='lavender',
+               align='left'))
+])
+
+fil.show()
+
+
+
