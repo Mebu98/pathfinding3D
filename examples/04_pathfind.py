@@ -155,8 +155,15 @@ datapoints = [] # Keep last datapoints for displaymode "Last"
 subtitle = f"""""" # Same for subtitle
 all_data_points = []
 
+
+names = []
+operation = []
+costs = []
+times = []
+
 for start in start_points:
     for end in end_points:
+
         datapoints = []
         subtitle = f""""""
         for i, algo in enumerate(algo_list):
@@ -175,6 +182,10 @@ for start in start_points:
             grid.cleanup()
 
             run = Run(algo, start, end, time_taken, operations, cost, len(datapoints))
+            names.append(algo)
+            operation.append(operations)
+            costs.append(cost)
+            times.append(time_taken)
 
             added = False
             for ri, result in enumerate(results):
@@ -191,6 +202,7 @@ for start in start_points:
                   max_x=max_x, max_y=max_y, max_z=max_z,
                   datapoints=datapoints, subtitle=subtitle)
 
+
 if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points, end=end_points,
           max_x=max_x, max_y=max_y, max_z=max_z,
           datapoints=all_data_points)
@@ -198,39 +210,21 @@ if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points,
 if visualizeMode.lower() == "last": visualize(grid=grid, start=start_points[-1], end=end_points[-1],
                                               max_x=max_x, max_y=max_y, max_z=max_z, datapoints=datapoints, subtitle=subtitle)
 
-
-
-
-print(results)
-
-names=[]
-operations=[]
-costs=[]
-times=[]
-all_algorithms=[]
-
-# Extract data for plotting
-for result in results:
-    for run in result.runs:
-        names.append(run.name)
-        operations.append(run.operations)
-        costs.append(run.cost)
-        times.append(run.time)
-        all_algorithms.append(result.name)
-
-print("name-list ",all_algorithms,"\n costlist:  ", names,"\n time:  ", times)
-
 # Create table
 fil = go.Figure(data=[go.Table(
     header=dict(values=["name", "operation", "cost", "time"],
-                fill_color='paleturquoise',
-                align='left'),
-    cells=dict(values=[all_algorithms, operations, costs, times],
-               fill_color='lavender',
-               align='left'))
+                        fill_color='paleturquoise',
+                        align='left'),
+            cells=dict(values=[names, operation, costs, times],
+                       fill_color='lavender',
+                       align='left'))
 ])
 
 fil.show()
+
+print(results)
+
+
 
 
 
