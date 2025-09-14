@@ -5,21 +5,19 @@ Requires plotly for visualization. Install it using `pip install plotly`
 import time
 
 import plotly.graph_objects as go
-import plotly.io as pio
-from plotly.graph_objs import Volume
-import plotly.express as px
-import pandas as pd
 
 from examples.IN5060_visualizer import visualize
+from examples.boxplots import show_boxplots
 from examples.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.core.heuristic import *
 from pathfinding3d.finder.a_star import AStarFinder
+from pathfinding3d.finder.bi_a_star import BiAStarFinder
 from pathfinding3d.finder.breadth_first import BreadthFirstFinder
 from pathfinding3d.finder.dijkstra import DijkstraFinder
-from pathfinding3d.finder.bi_a_star import BiAStarFinder
 from pathfinding3d.finder.theta_star import ThetaStarFinder
+
 
 class Node:
     def __init__(self, x, y, z):
@@ -57,7 +55,7 @@ results = []
 
 
 #Multiple modes, Individual (one plot for each combo), Combined (all at once...), Last (for last start + end)
-visualizeMode = "Combined"
+visualizeMode = "None"
 
 # 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
@@ -220,11 +218,7 @@ fil = go.Figure(data=[go.Table(
                        align='left'))
 ])
 
-fil.show()
+# fil.show()
 
-print(results)
-
-
-
-
+show_boxplots(results)
 
