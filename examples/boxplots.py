@@ -1,15 +1,33 @@
+import pandas as pd
 import plotly.express as px
 
 def show_boxplots(results):
     for key in results[0].runs[0].keys():
-        # No need for boxplots for these keys
-        if key not in ['name','start', 'end']:
+        if key not in ['name', 'start', 'end']:
             bp_vals = {
-                result.name: [] for result in results
+                result.name: [run.get(key) for run in result.runs]
+                for result in results
             }
 
-            for result in results:
-                bp_vals[result.name.lower()] = [run.get(key) for run in result.runs]
+            # Convert to long-form DataFrame
+            data = []
+            for name, values in bp_vals.items():
+                for v in values:
+                    data.append({'name': name, key: v})
+            df = pd.DataFrame(data)
 
-            bp = px.box(bp_vals, title=key)
+            # Assign fixed colors
+            color_map = {
+                list(bp_vals.keys())[0]: 'blue'
+
+            }
+
+            bp = px.box(
+                df,
+                x='name',
+                y=key,
+                color='name',
+                color_discrete_map=color_map,
+                title=key
+            )
             bp.show()

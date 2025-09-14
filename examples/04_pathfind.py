@@ -164,6 +164,7 @@ names = []
 operation = []
 costs = []
 times = []
+steps=[]
 
 for start in start_points:
     for end in end_points:
@@ -190,6 +191,7 @@ for start in start_points:
             operation.append(operations)
             costs.append(cost)
             times.append(time_taken)
+            steps.append(len(path))
 
             added = False
             for ri, result in enumerate(results):
@@ -201,6 +203,15 @@ for start in start_points:
             if not added:
                 results.append(Result(algo.lower(), [run]))
 
+        # Create table
+        fil = go.Figure(data=[go.Table(
+            header=dict(values=["name", "cost", "time"],
+                        fill_color='paleturquoise',
+                        align='left'),
+            cells=dict(values=[names, costs, times],
+                       fill_color='lavender',
+                       align='left'))
+        ])
 
         if visualizeMode.lower() == "individual": visualize(grid=grid, start=start, end=end,
                   max_x=max_x, max_y=max_y, max_z=max_z,
@@ -214,17 +225,9 @@ if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points,
 if visualizeMode.lower() == "last": visualize(grid=grid, start=start_points[-1], end=end_points[-1],
                                               max_x=max_x, max_y=max_y, max_z=max_z, datapoints=datapoints, subtitle=subtitle)
 
-# Create table
-fil = go.Figure(data=[go.Table(
-    header=dict(values=["name", "operation", "cost", "time"],
-                        fill_color='paleturquoise',
-                        align='left'),
-            cells=dict(values=[names, operation, costs, times],
-                       fill_color='lavender',
-                       align='left'))
-])
 
-# fil.show()
+
+fil.show()
 
 show_boxplots(results)
 
