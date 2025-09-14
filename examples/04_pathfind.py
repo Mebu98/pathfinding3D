@@ -41,6 +41,12 @@ class Run:
         return (f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, {end.z}),"
                 f" time(s): {self.time}, operations: {operations}, cost: {self.cost}, steps: {self.steps})")
 
+    def keys(self):
+        return vars(self).keys()
+
+    def get(self, key):
+        return vars(self).get(key)
+
 class Result:
     name = None
     runs = []
@@ -55,7 +61,7 @@ results = []
 
 
 #Multiple modes, Individual (one plot for each combo), Combined (all at once...), Last (for last start + end)
-visualizeMode = "None"
+visualizeMode = "Combined"
 
 # 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
@@ -162,14 +168,14 @@ times = []
 for start in start_points:
     for end in end_points:
 
-        datapoints = []
         subtitle = f""""""
+        datapoints = []
         for i, algo in enumerate(algo_list):
+
             start_time = time.time()
-
             path, operations = pathfinder(algo, start, end)
-
             end_time = time.time()
+
             time_taken = end_time - start_time
 
             ## Calculations for visualisations and data gathering, not sure if it should be a part of the time taken or not?
@@ -179,7 +185,7 @@ for start in start_points:
             datapoints.append(create_data_points(algo, path))
             grid.cleanup()
 
-            run = Run(algo, start, end, time_taken, operations, cost, len(datapoints))
+            run = Run(algo, start, end, time_taken, operations, cost, len(path))
             names.append(algo)
             operation.append(operations)
             costs.append(cost)
@@ -221,4 +227,6 @@ fil = go.Figure(data=[go.Table(
 # fil.show()
 
 show_boxplots(results)
+
+print(results)
 
