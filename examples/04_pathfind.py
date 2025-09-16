@@ -166,6 +166,20 @@ costs = []
 times = []
 steps=[]
 
+
+names = []
+d_costs = []
+d_times = []
+a_costs = []
+a_times = []
+bia_costs = []
+bia_times = []
+bfs_costs = []
+bfs_times = []
+theta_costs = []
+theta_times = []
+
+
 for start in start_points:
     for end in end_points:
 
@@ -192,6 +206,22 @@ for start in start_points:
             costs.append(cost)
             times.append(time_taken)
             steps.append(len(path))
+
+            if(algo=="Dijkstra"):
+                d_costs.append(cost)
+                d_times.append(time_taken)
+            elif(algo=="A*"):
+                a_costs.append(cost)
+                a_times.append(time_taken)
+            elif(algo=="Bi A*"):
+                bia_costs.append(cost)
+                bia_times.append(time_taken)
+            elif(algo=="BFS"):
+                bfs_costs.append(cost)
+                bfs_times.append(time_taken)
+            elif(algo=="Theta*"):
+                theta_costs.append(cost)
+                theta_times.append(time_taken)
 
             added = False
             for ri, result in enumerate(results):
@@ -233,3 +263,30 @@ show_boxplots(results)
 
 print(results)
 
+
+mean_cost = []
+mean_time = []
+
+mean_cost.append(np.mean(d_costs))
+mean_cost.append(np.mean(bfs_costs))
+mean_cost.append(np.mean(a_costs))
+mean_cost.append(np.mean(bia_costs))
+mean_cost.append(np.mean(theta_costs))
+
+mean_time.append(np.mean(d_times))
+mean_time.append(np.mean(bfs_times))
+mean_time.append(np.mean(a_times))
+mean_time.append(np.mean(bia_times))
+mean_time.append(np.mean(theta_times))
+
+# Create table
+fim = go.Figure(data=[go.Table(
+    header=dict(values=["name", "mean cost", "mean time"],
+                fill_color='paleturquoise',
+                align='left'),
+    cells=dict(values=[names[:5], mean_cost, mean_time],
+               fill_color='lavender',
+               align='left'))
+])
+
+fim.show()
