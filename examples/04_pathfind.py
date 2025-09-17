@@ -279,13 +279,25 @@ mean_time.append(np.mean(a_times))
 mean_time.append(np.mean(bia_times))
 mean_time.append(np.mean(theta_times))
 
+
+row_colors = [
+    '#AAB8F5',  # light blue
+    '#F4A29A',  # light red
+    '#A1EFD4',  # light green
+    '#D2B7F5',  # light purple
+    '#FFD2A6'   # light orange
+]
+
+# Expand row_colors for each column (3 columns)
+cell_fill_colors = [row_colors] * 3  # one color per row, repeated across columns
+
 # Create table
 fim = go.Figure(data=[go.Table(
     header=dict(values=["name", "mean cost", "mean time"],
                 fill_color='paleturquoise',
                 align='left'),
     cells=dict(values=[names[:5], mean_cost, mean_time],
-               fill_color='lavender',
+               fill_color=cell_fill_colors,
                align='left'))
 ])
 
