@@ -28,18 +28,18 @@ class Node:
         return f"Node({self.x}, {self.y}, {self.z})"
 
 class Run:
-    def __init__(self, name, start, end, time, operations, cost, steps):
+    def __init__(self, name, start, end, computation_seconds, operations, cost, steps):
         self.name = name
         self.start = start
         self.end = end
-        self.time = time
+        self.computation_seconds = computation_seconds
         self.operations = operations
         self.cost = cost
         self.steps = steps
 
     def __repr__(self):
         return (f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, {end.z}),"
-                f" time(s): {self.time}, operations: {operations}, cost: {self.cost}, steps: {self.steps})")
+                f" time(s): {self.computation_seconds}, operations: {operations}, cost: {self.cost}, steps: {self.steps})")
 
     def keys(self):
         return vars(self).keys()
@@ -293,7 +293,7 @@ cell_fill_colors = [row_colors] * 3  # one color per row, repeated across column
 
 # Create table
 fim = go.Figure(data=[go.Table(
-    header=dict(values=["name", "mean cost", "mean time"],
+    header=dict(values=["name", "mean cost", "mean computation_seconds"],
                 fill_color='paleturquoise',
                 align='left'),
     cells=dict(values=[names[:5], mean_cost, mean_time],
