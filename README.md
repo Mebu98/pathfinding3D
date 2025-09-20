@@ -1,5 +1,5 @@
 # IN5060 
-[IN5060 Task 1 group 5.pptx](IN5060/IN5060.pptx)
+[IN5060 Task 1 group 5.pdf](IN5060/IN5060.pdf)
 
 
 <div align="center">
