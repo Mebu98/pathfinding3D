@@ -6,9 +6,9 @@ import time
 
 import plotly.graph_objects as go
 
-from examples.IN5060_visualizer import visualize
-from examples.boxplots import show_boxplots
-from examples.custom_maps import *
+from IN5060.IN5060_visualizer import visualize
+from IN5060.boxplots import show_boxplots
+from IN5060.custom_maps import *
 from pathfinding3d.core.diagonal_movement import DiagonalMovement
 from pathfinding3d.core.grid import Grid
 from pathfinding3d.core.heuristic import *
@@ -28,18 +28,18 @@ class Node:
         return f"Node({self.x}, {self.y}, {self.z})"
 
 class Run:
-    def __init__(self, name, start, end, computation_seconds, operations, cost, steps):
+    def __init__(self, name, start, end, computation_seconds, operations, distance_cost, steps):
         self.name = name
         self.start = start
         self.end = end
         self.computation_seconds = computation_seconds
         self.operations = operations
-        self.cost = cost
+        self.distance_cost = distance_cost
         self.steps = steps
 
     def __repr__(self):
         return (f"Run(name: {self.name}, start: xyz=({start.x}, {start.y}, {start.z}), end: xyz=({end.x}, {end.y}, {end.z}),"
-                f" time(s): {self.computation_seconds}, operations: {operations}, cost: {self.cost}, steps: {self.steps})")
+                f" time(s): {self.computation_seconds}, operations: {operations}, distance_cost: {self.distance_cost}, steps: {self.steps})")
 
     def keys(self):
         return vars(self).keys()
@@ -61,7 +61,7 @@ results = []
 
 
 #Multiple modes, Individual (one plot for each combo), Combined (all at once...), Last (for last start + end)
-visualizeMode = "Combined"
+visualizeMode = "individual"
 
 # 2 Obstacle mode, Cubes and Volume
 obstacleMode = "Cubes"
@@ -87,11 +87,11 @@ algo_list = ["Dijkstra", "BFS",
 
 # Colours are added to the algo based on index, so algo[0] has colours[0], etc.
 colours = [
-    '#636EFA',
-    '#EF553B',
-    '#00CC96',
-    '#AB63FA',
-    '#FFA15A',
+    '#636EFA', # currently Dijkstra
+    '#EF553B', # BFS
+    '#00CC96', # A*
+    '#AB63FA', # BI A*
+    '#FFA15A', # Theta*
     '#19D3F3',
     '#FF6692',
     '#B6E880',
@@ -127,19 +127,20 @@ def pathfinder(algorithm, l_start, l_end):
     return path, operations
 
 
-def calculate_path_cost(path):
-    total_cost = 0
+def calculate_path_distance_cost(path):
+    total_distance_cost = 0
     for pt, pt_next in zip(path[:-1], path[1:]):
         dx, dy, dz = pt_next[0] - pt[0], pt_next[1] - pt[1], pt_next[2] - pt[2]
-        total_cost += (dx**2 + dy**2 + dz**2) ** 0.5
-    return total_cost
+        total_distance_cost += (dx**2 + dy**2 + dz**2) ** 0.5
+    return total_distance_cost
 
-def add_to_subtitle(algorithm, operations, cost, path):
+def add_to_subtitle(algorithm, operations, distance_cost, path, computation_seconds):
     return f"""
     {algorithm}:<br>
         Operations: {operations}<br>
-        Cost: {cost:.2f}<br>
-        "Steps": {len(path)}
+        distance_cost: {distance_cost:.2f}<br>
+        "Steps": {len(path)} <br>
+        computation_seconds: {computation_seconds:.2f}
     <br>"""
 
 def create_data_points(algorithm, path):
@@ -162,90 +163,91 @@ all_data_points = []
 
 names = []
 operation = []
-costs = []
+distance_costs = []
 times = []
 steps=[]
 
 
 names = []
-d_costs = []
+d_distance_costs = []
 d_times = []
-a_costs = []
+a_distance_costs = []
 a_times = []
-bia_costs = []
+bia_distance_costs = []
 bia_times = []
-bfs_costs = []
+bfs_distance_costs = []
 bfs_times = []
-theta_costs = []
+theta_distance_costs = []
 theta_times = []
 
+for iteration in range(1):
+    for start in start_points:
+        for end in end_points:
 
-for start in start_points:
-    for end in end_points:
+            subtitle = f""""""
+            datapoints = []
+            for i, algo in enumerate(algo_list):
 
-        subtitle = f""""""
-        datapoints = []
-        for i, algo in enumerate(algo_list):
+                start_time = time.time()
+                path, operations = pathfinder(algo, start, end)
+                end_time = time.time()
 
-            start_time = time.time()
-            path, operations = pathfinder(algo, start, end)
-            end_time = time.time()
+                time_taken = end_time - start_time
 
-            time_taken = end_time - start_time
+                ## Calculations for visualisations and data gathering, not sure if it should be a part of the time taken or not?
+                distance_cost = calculate_path_distance_cost(path)
+                all_data_points.append(create_data_points(algo, path))
+                subtitle += add_to_subtitle(algo, operations, distance_cost, path, computation_seconds=time_taken)
+                datapoints.append(create_data_points(algo, path))
+                grid.cleanup()
 
-            ## Calculations for visualisations and data gathering, not sure if it should be a part of the time taken or not?
-            cost = calculate_path_cost(path)
-            all_data_points.append(create_data_points(algo, path))
-            subtitle += add_to_subtitle(algo, operations, cost, path)
-            datapoints.append(create_data_points(algo, path))
-            grid.cleanup()
+                run = Run(algo, start, end, time_taken, operations, distance_cost, len(path))
+                names.append(algo)
+                operation.append(operations)
+                distance_costs.append(distance_cost)
+                times.append(time_taken)
+                steps.append(len(path))
 
-            run = Run(algo, start, end, time_taken, operations, cost, len(path))
-            names.append(algo)
-            operation.append(operations)
-            costs.append(cost)
-            times.append(time_taken)
-            steps.append(len(path))
+                if(algo=="Dijkstra"):
+                    d_distance_costs.append(distance_cost)
+                    d_times.append(time_taken)
+                elif(algo=="A*"):
+                    a_distance_costs.append(distance_cost)
+                    a_times.append(time_taken)
+                elif(algo=="Bi A*"):
+                    bia_distance_costs.append(distance_cost)
+                    bia_times.append(time_taken)
+                elif(algo=="BFS"):
+                    bfs_distance_costs.append(distance_cost)
+                    bfs_times.append(time_taken)
+                elif(algo=="Theta*"):
+                    theta_distance_costs.append(distance_cost)
+                    theta_times.append(time_taken)
 
-            if(algo=="Dijkstra"):
-                d_costs.append(cost)
-                d_times.append(time_taken)
-            elif(algo=="A*"):
-                a_costs.append(cost)
-                a_times.append(time_taken)
-            elif(algo=="Bi A*"):
-                bia_costs.append(cost)
-                bia_times.append(time_taken)
-            elif(algo=="BFS"):
-                bfs_costs.append(cost)
-                bfs_times.append(time_taken)
-            elif(algo=="Theta*"):
-                theta_costs.append(cost)
-                theta_times.append(time_taken)
+                added = False
+                for ri, result in enumerate(results):
+                    if result.name.lower() == algo.lower():
+                        results[ri].runs.append(run)
+                        added = True
+                        break
 
-            added = False
-            for ri, result in enumerate(results):
-                if result.name.lower() == algo.lower():
-                    results[ri].runs.append(run)
-                    added = True
-                    break
+                if not added:
+                    results.append(Result(algo.lower(), [run]))
 
-            if not added:
-                results.append(Result(algo.lower(), [run]))
+            # Create table
+            fil = go.Figure(data=[go.Table(
+                header=dict(values=["name", "distance_cost", "time"],
+                            fill_color='paleturquoise',
+                            align='left'),
+                cells=dict(values=[names, distance_costs, times],
+                           fill_color='lavender',
+                           align='left'))
+            ])
 
-        # Create table
-        fil = go.Figure(data=[go.Table(
-            header=dict(values=["name", "cost", "time"],
-                        fill_color='paleturquoise',
-                        align='left'),
-            cells=dict(values=[names, costs, times],
-                       fill_color='lavender',
-                       align='left'))
-        ])
 
-        if visualizeMode.lower() == "individual": visualize(grid=grid, start=start, end=end,
-                  max_x=max_x, max_y=max_y, max_z=max_z,
-                  datapoints=datapoints, subtitle=subtitle)
+            if visualizeMode.lower() == "individual": visualize(grid=grid, start=start, end=end,
+                      max_x=max_x, max_y=max_y, max_z=max_z,
+                      datapoints=datapoints, subtitle=subtitle)
 
 
 if visualizeMode.lower() == "combined": visualize(grid=grid, start=start_points, end=end_points,
@@ -264,14 +266,14 @@ show_boxplots(results)
 print(results)
 
 
-mean_cost = []
+mean_distance_cost = []
 mean_time = []
 
-mean_cost.append(np.mean(d_costs))
-mean_cost.append(np.mean(bfs_costs))
-mean_cost.append(np.mean(a_costs))
-mean_cost.append(np.mean(bia_costs))
-mean_cost.append(np.mean(theta_costs))
+mean_distance_cost.append(np.mean(d_distance_costs))
+mean_distance_cost.append(np.mean(bfs_distance_costs))
+mean_distance_cost.append(np.mean(a_distance_costs))
+mean_distance_cost.append(np.mean(bia_distance_costs))
+mean_distance_cost.append(np.mean(theta_distance_costs))
 
 mean_time.append(np.mean(d_times))
 mean_time.append(np.mean(bfs_times))
@@ -293,10 +295,11 @@ cell_fill_colors = [row_colors] * 3  # one color per row, repeated across column
 
 # Create table
 fim = go.Figure(data=[go.Table(
-    header=dict(values=["name", "mean cost", "mean computation_seconds"],
-                fill_color='paleturquoise',
+    header=dict(values=["name", "mean distance_cost", "mean computation_seconds"],
+                fill_color='#dddddd',
+                # color='#f46524',
                 align='left'),
-    cells=dict(values=[names[:5], mean_cost, mean_time],
+    cells=dict(values=[names[:5], mean_distance_cost, mean_time],
                fill_color=cell_fill_colors,
                align='left'))
 ])

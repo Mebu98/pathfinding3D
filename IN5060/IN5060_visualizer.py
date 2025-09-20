@@ -1,14 +1,10 @@
-import random
-from random import Random
 from typing import Optional
 
 import plotly.graph_objects as go
 import numpy as np
-from _plotly_utils.colors.qualitative import Plotly
-from narwhals import Array
 from plotly.graph_objs import Figure, Volume
 
-from examples.custom_maps import Node
+from IN5060.custom_maps import Node
 
 
 
